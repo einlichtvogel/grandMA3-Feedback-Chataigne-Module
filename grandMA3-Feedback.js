@@ -27,15 +27,12 @@ function getWingNumberFromButtonNumber(execNumber) {
 function init() {
   script.log("Custom module init");
 
-  for(a = 1; a <= 3; a++) {
-    var param = local.values.addContainer(a === 1 ? "Color" : a === 2 ? "ColorString" : "Status");
+  for(a = 1; a <= 2; a++) {
+    var param = local.values.addContainer(a === 1 ? "Color" : "Status");
     param.setCollapsed(false);
 
-    var executors = param.addContainer("Executors");
-    executors.setCollapsed(false);
-
     for (i = 1; i <= wingArray.length; i++) {
-      var wing = executors.addContainer("Wing " + i);
+      var wing = param.addContainer("Wing " + i);
       wing.setCollapsed(true);
 
       //Create containers for each row in the wing
@@ -52,10 +49,6 @@ function init() {
             rowButtons.addColorParameter("Button " + buttonID, "Color for button " + buttonID, 0x000000FF);
           }
           if (a === 2) {
-            // Color String
-            rowButtons.addStringParameter("Button " + buttonID, "Color for button " + buttonID + "as string", "0;0;0;0");
-          }
-          if (a === 3) {
             // Status
             rowButtons.addBoolParameter("Button " + buttonID, "Button " + buttonID + " on/off", false);
           }
@@ -63,7 +56,7 @@ function init() {
       }
     }
 
-    var xkeys = executors.addContainer("xKeys");
+    var xkeys = param.addContainer("xKeys");
     xkeys.setCollapsed(true);
 
     //Create containers for each row in the x-keys
@@ -80,10 +73,6 @@ function init() {
           rowButtons.addColorParameter("Button " + buttonID, "Color for button " + buttonID, 0x000000FF);
         }
         if (a === 2) {
-          // Color String
-          rowButtons.addStringParameter("Button " + buttonID, "Color for button " + buttonID + "as string", "0;0;0;0");
-        }
-        if (a === 3) {
           // Status
           rowButtons.addBoolParameter("Button " + buttonID, "Button " + buttonID + " on/off", false);
         }
@@ -104,28 +93,26 @@ function oscEvent(address, args) {
     var buttonNumber = execNumber.charAt(1) + "" + execNumber.charAt(2);
     var type = address.split("/")[2];
 
-    var btn, btnString;
+    var btn;
 
     if(type === "Button"){
       if(parseInt(buttonNumber) >= 91 && (parseInt(buttonNumber) <= 98)) {
         // X-Keys
-        btn = local.values["status"]["executors"]["xKeys"]["row" + rowNumber + "00"]["button" + execNumber];
+        btn = local.values["status"]["xKeys"]["row" + rowNumber + "00"]["button" + execNumber];
       }else{
-        btn = local.values["status"]["executors"]["wing" + getWingNumberFromButtonNumber(buttonNumber)]["row" + rowNumber + "00"]["button" + execNumber];
+        btn = local.values["status"]["wing" + getWingNumberFromButtonNumber(buttonNumber)]["row" + rowNumber + "00"]["button" + execNumber];
       }
 
-      btn.status.set(args[0] === "On");
+      btn.set(args[0] === "On");
     }
 
     if(type === "Color") {
         // Set the color parameter of the button
         if(parseInt(buttonNumber) >= 91 && (parseInt(buttonNumber) <= 98)) {
             // X-Keys
-            btn = local.values["color"]["executors"]["xKeys"]["row" + rowNumber + "00"]["button" + execNumber];
-            btnString = local.values["colorString"]["executors"]["xKeys"]["row" + rowNumber + "00"]["button" + execNumber];
+            btn = local.values["color"]["xKeys"]["row" + rowNumber + "00"]["button" + execNumber];
         }else{
-            btn = local.values["color"]["executors"]["wing" + getWingNumberFromButtonNumber(buttonNumber)]["row" + rowNumber + "00"]["button" + execNumber];
-            btnString = local.values["colorString"]["executors"]["wing" + getWingNumberFromButtonNumber(buttonNumber)]["row" + rowNumber + "00"]["button" + execNumber];
+            btn = local.values["color"]["wing" + getWingNumberFromButtonNumber(buttonNumber)]["row" + rowNumber + "00"]["button" + execNumber];
         }
 
         var spl = args[0].split(";");
@@ -133,8 +120,7 @@ function oscEvent(address, args) {
         var newCol = [1,1,1,1];
         for(var i=0;i<spl.length-1;i++) newCol[i] = parseInt(spl[i])/255.0;
 
-        btn.color.set(newCol);
-        btnString.colorString.set(args[0]);
+        btn.set(newCol);
     }
   }
 
