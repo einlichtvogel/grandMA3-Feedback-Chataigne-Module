@@ -1,0 +1,43 @@
+{
+  "name":"grandMA3 Feedback",
+  "type":"OSC",
+  "path":"Software",
+
+  "version":"1.0.0",
+  "description":"A Chataigne Module to receive feedback from grandMA3 via OSC and an LUA plugin",
+  "url":"https://github.com/tommag/Sample-Chataigne-module",
+  "downloadURL":"https://github.com/tommag/Sample-Chataigne-module/archive/master.zip",
+
+  "hasInput":true,
+  "hasOutput":false,
+
+  "hideDefaultCommands":false,
+
+  "hideDefaultParameters": [
+    "colorSendMode",
+    "autoRange",
+    "autoFeedback",
+    "useHierarchy",
+    "autoAdd",
+    "booleanSendMode",
+    "clearValues",
+    "splitArguments"
+  ],
+
+  "defaults": {
+    "OSC Input": {
+      "localPort" : 8093
+    }
+  },
+
+  "parameters": {},
+
+  "scripts":
+  [
+    "grandMA3-Feedback.js"
+  ],
+
+  "values":  {},
+
+  "commands": {}
+}
