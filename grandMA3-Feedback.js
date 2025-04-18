@@ -95,32 +95,24 @@ function oscEvent(address, args) {
 
     var btn;
 
-    if(type === "Button"){
-      if(parseInt(buttonNumber) >= 91 && (parseInt(buttonNumber) <= 98)) {
-        // X-Keys
-        btn = local.values["status"]["xKeys"]["row" + rowNumber + "00"]["button" + execNumber];
-      }else{
-        btn = local.values["status"]["wing" + getWingNumberFromButtonNumber(buttonNumber)]["row" + rowNumber + "00"]["button" + execNumber];
-      }
+    if (parseInt(buttonNumber) >= 91 && (parseInt(buttonNumber) <= 98)) {
+      // X-Keys
+      btn = local.values[type === "Color" ? "color" : "status"]["xKeys"]["row" + rowNumber + "00"]["button" + execNumber];
+    } else {
+      btn = local.values[type === "Color" ? "color" : "status"]["wing" + getWingNumberFromButtonNumber(buttonNumber)]["row" + rowNumber + "00"]["button" + execNumber];
+    }
 
+    if (type === "Button") {
       btn.set(args[0] === "On");
     }
 
-    if(type === "Color") {
-        // Set the color parameter of the button
-        if(parseInt(buttonNumber) >= 91 && (parseInt(buttonNumber) <= 98)) {
-            // X-Keys
-            btn = local.values["color"]["xKeys"]["row" + rowNumber + "00"]["button" + execNumber];
-        }else{
-            btn = local.values["color"]["wing" + getWingNumberFromButtonNumber(buttonNumber)]["row" + rowNumber + "00"]["button" + execNumber];
-        }
+    if (type === "Color") {
+      var spl = args[0].split(";");
 
-        var spl = args[0].split(";");
+      var newCol = [1, 1, 1, 1];
+      for (var i = 0; i < spl.length - 1; i++) newCol[i] = parseInt(spl[i]) / 255.0;
 
-        var newCol = [1,1,1,1];
-        for(var i=0;i<spl.length-1;i++) newCol[i] = parseInt(spl[i])/255.0;
-
-        btn.set(newCol);
+      btn.set(newCol);
     }
   }
 
