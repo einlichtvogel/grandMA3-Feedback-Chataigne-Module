@@ -4,6 +4,7 @@ var wingArray = [
   { start: 31, end: 45 }, //wing 3
   { start: 46, end: 60 }, //wing 4
   { start: 61, end: 75 }, //wing 5
+  { start: 76, end: 90 }, //wing 6
 ];
 
 function formatNumber(num) {
@@ -26,47 +27,71 @@ function getWingNumberFromButtonNumber(execNumber) {
 function init() {
   script.log("Custom module init");
 
-  var executors = local.values.addContainer("Executors");
-  executors.setCollapsed(false);
+  for(a = 1; a <= 3; a++) {
+    var param = local.values.addContainer(a === 1 ? "Color" : a === 2 ? "ColorString" : "Status");
+    param.setCollapsed(false);
 
-  //Create containers for each wing
-  for (i = 1; i <= wingArray.length; i++) {
-    var wing = executors.addContainer("Wing " + i);
-    wing.setCollapsed(true);
+    var executors = param.addContainer("Executors");
+    executors.setCollapsed(false);
 
-    //Create containers for each row in the wing
-    for (j = 1; j <= 4; j++) {
-      var rowButtons = wing.addContainer("Row " + j + "00");
+    for (i = 1; i <= wingArray.length; i++) {
+      var wing = executors.addContainer("Wing " + i);
+      wing.setCollapsed(true);
+
+      //Create containers for each row in the wing
+      for (j = 1; j <= 4; j++) {
+        var rowButtons = wing.addContainer("Row " + j + "00");
+        rowButtons.setCollapsed(true);
+
+        //Create buttons for each row
+        for (f = wingArray[i - 1]["start"]; f <= wingArray[i - 1]["end"]; f++) {
+          var buttonID = j + "" + formatNumber(f);
+          var btn = rowButtons.addContainer("Button " + buttonID);
+          btn.setCollapsed(true);
+
+          if (a === 1) {
+            // Color
+            btn.addColorParameter("Color", "Color for button " + buttonID, 0x000000FF);
+          }
+          if (a === 2) {
+            // Color String
+            btn.addStringParameter("ColorString", "Color for button " + buttonID + "as string", "0;0;0;0");
+          }
+          if (a === 3) {
+            // Status
+            btn.addBoolParameter("Status", "Button " + buttonID + " on/off", false);
+          }
+        }
+      }
+    }
+
+    var xkeys = executors.addContainer("xKeys");
+    xkeys.setCollapsed(true);
+
+    //Create containers for each row in the x-keys
+    for (j = 1; j <= 2; j++) {
+      var rowButtons = xkeys.addContainer("Row " + j + "00");
       rowButtons.setCollapsed(true);
 
       //Create buttons for each row
-      for (f = wingArray[i-1]["start"]; f <= wingArray[i-1]["end"]; f++) {
-        var buttonID = j + "" + formatNumber(f);
+      for (f = 1; f <= 8; f++) {
+        var buttonID = j + "9" + f;
         var btn = rowButtons.addContainer("Button " + buttonID);
         btn.setCollapsed(true);
-        btn.addColorParameter("Color", "Color for button " + buttonID, 0x000000FF);
-        btn.addStringParameter("Color String", "Color for button " + buttonID + "as string", "255;255;255;255");
-        btn.addBoolParameter("Status", "Button " + buttonID + " on/off", false);
+
+        if (a === 1) {
+          // Color
+          btn.addColorParameter("Color", "Color for button " + buttonID, 0x000000FF);
+        }
+        if (a === 2) {
+          // Color String
+          btn.addStringParameter("ColorString", "Color for button " + buttonID + "as string", "0;0;0;0");
+        }
+        if (a === 3) {
+          // Status
+          btn.addBoolParameter("Status", "Button " + buttonID + " on/off", false);
+        }
       }
-    }
-  }
-
-  var xkeys = executors.addContainer("xKeys");
-  xkeys.setCollapsed(true);
-
-  //Create containers for each row in the x-keys
-  for (j = 1; j <= 2; j++) {
-    var rowButtons = xkeys.addContainer("Row " + j + "00");
-    rowButtons.setCollapsed(true);
-
-    //Create buttons for each row
-    for (f = 1; f <= 8; f++) {
-      var buttonID = j + "9" + f;
-      var btn = rowButtons.addContainer("Button " + buttonID);
-      btn.setCollapsed(true);
-      btn.addColorParameter("Color", "Color for button " + buttonID, 0x000000FF);
-      btn.addStringParameter("Color String", "Color for button " + buttonID + "as string", "255;255;255;255");
-      btn.addBoolParameter("Status", "Button " + buttonID + " on/off", false);
     }
   }
 }
@@ -83,31 +108,37 @@ function oscEvent(address, args) {
     var buttonNumber = execNumber.charAt(1) + "" + execNumber.charAt(2);
     var type = address.split("/")[2];
 
-    var btn;
+    var btn, btnString;
 
-    if(parseInt(buttonNumber) >= 91 && (parseInt(buttonNumber) <= 98)) {
-      // X-Keys
-      btn = local.values.executors["xKeys"]["row" + rowNumber + "00"]["button" + execNumber];
-    }else{
-      btn = local.values.executors["wing" + getWingNumberFromButtonNumber(buttonNumber)]["row" + rowNumber + "00"]["button" + execNumber];
-    }
+    if(type === "Button"){
+      if(parseInt(buttonNumber) >= 91 && (parseInt(buttonNumber) <= 98)) {
+        // X-Keys
+        btn = local.values["status"]["executors"]["xKeys"]["row" + rowNumber + "00"]["button" + execNumber];
+      }else{
+        btn = local.values["status"]["executors"]["wing" + getWingNumberFromButtonNumber(buttonNumber)]["row" + rowNumber + "00"]["button" + execNumber];
+      }
 
-
-
-    if(type === "Button") {
-      // Set the status parameter of the button
       btn.status.set(args[0] === "On");
     }
 
     if(type === "Color") {
-      // Set the color parameter of the button
-      btn.colorString.set(args[0]);
-      var spl = args[0].split(";");
+        // Set the color parameter of the button
+        if(parseInt(buttonNumber) >= 91 && (parseInt(buttonNumber) <= 98)) {
+            // X-Keys
+            btn = local.values["color"]["executors"]["xKeys"]["row" + rowNumber + "00"]["button" + execNumber];
+            btnString = local.values["colorString"]["executors"]["xKeys"]["row" + rowNumber + "00"]["button" + execNumber];
+        }else{
+            btn = local.values["color"]["executors"]["wing" + getWingNumberFromButtonNumber(buttonNumber)]["row" + rowNumber + "00"]["button" + execNumber];
+            btnString = local.values["colorString"]["executors"]["wing" + getWingNumberFromButtonNumber(buttonNumber)]["row" + rowNumber + "00"]["button" + execNumber];
+        }
 
-      var newCol = [1,1,1,1];
-      for(var i=0;i<spl.length-1;i++) newCol[i] = parseInt(spl[i])/255.0;
+        var spl = args[0].split(";");
 
-      btn.color.set(newCol);
+        var newCol = [1,1,1,1];
+        for(var i=0;i<spl.length-1;i++) newCol[i] = parseInt(spl[i])/255.0;
+
+        btn.color.set(newCol);
+        btnString.colorString.set(args[0]);
     }
   }
 
