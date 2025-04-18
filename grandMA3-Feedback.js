@@ -46,20 +46,18 @@ function init() {
         //Create buttons for each row
         for (f = wingArray[i - 1]["start"]; f <= wingArray[i - 1]["end"]; f++) {
           var buttonID = j + "" + formatNumber(f);
-          var btn = rowButtons.addContainer("Button " + buttonID);
-          btn.setCollapsed(true);
 
           if (a === 1) {
             // Color
-            btn.addColorParameter("Color", "Color for button " + buttonID, 0x000000FF);
+            rowButtons.addColorParameter("Button " + buttonID, "Color for button " + buttonID, 0x000000FF);
           }
           if (a === 2) {
             // Color String
-            btn.addStringParameter("ColorString", "Color for button " + buttonID + "as string", "0;0;0;0");
+            rowButtons.addStringParameter("Button " + buttonID, "Color for button " + buttonID + "as string", "0;0;0;0");
           }
           if (a === 3) {
             // Status
-            btn.addBoolParameter("Status", "Button " + buttonID + " on/off", false);
+            rowButtons.addBoolParameter("Button " + buttonID, "Button " + buttonID + " on/off", false);
           }
         }
       }
@@ -76,20 +74,18 @@ function init() {
       //Create buttons for each row
       for (f = 1; f <= 8; f++) {
         var buttonID = j + "9" + f;
-        var btn = rowButtons.addContainer("Button " + buttonID);
-        btn.setCollapsed(true);
 
         if (a === 1) {
           // Color
-          btn.addColorParameter("Color", "Color for button " + buttonID, 0x000000FF);
+          rowButtons.addColorParameter("Button " + buttonID, "Color for button " + buttonID, 0x000000FF);
         }
         if (a === 2) {
           // Color String
-          btn.addStringParameter("ColorString", "Color for button " + buttonID + "as string", "0;0;0;0");
+          rowButtons.addStringParameter("Button " + buttonID, "Color for button " + buttonID + "as string", "0;0;0;0");
         }
         if (a === 3) {
           // Status
-          btn.addBoolParameter("Status", "Button " + buttonID + " on/off", false);
+          rowButtons.addBoolParameter("Button " + buttonID, "Button " + buttonID + " on/off", false);
         }
       }
     }
