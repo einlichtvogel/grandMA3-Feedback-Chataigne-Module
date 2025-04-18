@@ -87,7 +87,6 @@ function oscEvent(address, args) {
   // Check if the address starts with "/Exec"
   if (address.startsWith("/Exec")) {
 
-
     var execNumber = address.split("/")[1].split("c")[1];
     var rowNumber = execNumber.charAt(0);
     var buttonNumber = execNumber.charAt(1) + "" + execNumber.charAt(2);
@@ -116,4 +115,24 @@ function oscEvent(address, args) {
     }
   }
 
+}
+
+function resetAllValues(){
+  for (a = 1; a <= 2; a++) {
+    for (i = 1; i <= wingArray.length; i++) {
+      for (j = 1; j <= 4; j++) {
+        for (f = wingArray[i - 1]["start"]; f <= wingArray[i - 1]["end"]; f++) {
+          var buttonID = j + "" + formatNumber(f);
+          local.values[a === 1 ? "color" : "status"]["wing" + i]["row" + j + "00"]["button" + buttonID].set(a === 1 ? 0xFF000000 : false);
+        }
+      }
+    }
+
+    for (j = 1; j <= 2; j++) {
+      for (f = 1; f <= 8; f++) {
+        var buttonID = j + "9" + f;
+        local.values[a === 1 ? "color" : "status"]["xKeys"]["row" + j + "00"]["button" + buttonID].set(a === 1 ? 0xFF000000 : false);
+      }
+    }
+  }
 }

@@ -39,5 +39,10 @@
 
   "values":  {},
 
-  "commands": {}
+  "commands": {
+    "Reset All Values":
+    {
+      "callback":"resetAllValues"
+    }
+  }
 }
