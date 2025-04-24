@@ -54,14 +54,18 @@ function init() {
         for (f = wingArray[i - 1]["start"]; f <= wingArray[i - 1]["end"]; f++) {
           var buttonID = j + "" + formatNumber(f);
 
+
+          var btn;
           if (a === 1) {
             // Color
-            rowButtons.addColorParameter("Button " + buttonID, "Color for button " + buttonID, 0x000000FF);
+            btn = rowButtons.addColorParameter("Button " + buttonID, "Color for button " + buttonID, 0x000000FF);
           }
           if (a === 2) {
             // Status
-            rowButtons.addBoolParameter("Button " + buttonID, "Button " + buttonID + " on/off", false);
+            btn = rowButtons.addBoolParameter("Button " + buttonID, "Button " + buttonID + " on/off", false);
           }
+
+          btn.setAttribute("saveValueOnly", false);
         }
       }
     }
@@ -78,14 +82,17 @@ function init() {
       for (f = 1; f <= 8; f++) {
         var buttonID = j + "9" + f;
 
+        var btn;
         if (a === 1) {
           // Color
-          rowButtons.addColorParameter("Button " + buttonID, "Color for button " + buttonID, 0x000000FF);
+          btn = rowButtons.addColorParameter("Button " + buttonID, "Color for button " + buttonID, 0x000000FF);
         }
         if (a === 2) {
           // Status
-          rowButtons.addBoolParameter("Button " + buttonID, "Button " + buttonID + " on/off", false);
+          btn =rowButtons.addBoolParameter("Button " + buttonID, "Button " + buttonID + " on/off", false);
         }
+
+        btn.setAttribute("saveValueOnly", false);
       }
     }
   }
@@ -155,14 +162,18 @@ function oscEvent(address, args) {
                 for (f = wingArray[wi - 1]["start"]; f <= wingArray[wi - 1]["end"]; f++) {
                   var buttonID = j + "" + formatNumber(f);
 
+                  var btn;
+
                   if (a === 1) {
                     // Color
-                    rowButtons.addColorParameter("Button " + buttonID, "Color for button " + buttonID, 0x000000FF);
+                    btn = rowButtons.addColorParameter("Button " + buttonID, "Color for button " + buttonID, 0x000000FF);
                   }
                   if (a === 2) {
                     // Status
-                    rowButtons.addBoolParameter("Button " + buttonID, "Button " + buttonID + " on/off", false);
+                    btn = rowButtons.addBoolParameter("Button " + buttonID, "Button " + buttonID + " on/off", false);
                   }
+
+                  btn.setAttribute("saveValueOnly", false);
                 }
               }
             }
@@ -179,14 +190,18 @@ function oscEvent(address, args) {
               for (f = 1; f <= 8; f++) {
                 var buttonID = j + "9" + f;
 
+                var btn;
+
                 if (a === 1) {
                   // Color
-                  rowButtons.addColorParameter("Button " + buttonID, "Color for button " + buttonID, 0x000000FF);
+                  btn = rowButtons.addColorParameter("Button " + buttonID, "Color for button " + buttonID, 0x000000FF);
                 }
                 if (a === 2) {
                   // Status
-                  rowButtons.addBoolParameter("Button " + buttonID, "Button " + buttonID + " on/off", false);
+                  btn = rowButtons.addBoolParameter("Button " + buttonID, "Button " + buttonID + " on/off", false);
                 }
+
+                btn.setAttribute("saveValueOnly", false);
               }
             }
           }else{
@@ -231,14 +246,18 @@ function oscEvent(address, args) {
                 }
 
                 if(row["Button " + buttonID] === undefined) {
+                  var btn;
+
                   if (a === 1) {
                     // Color
-                    row.addColorParameter("Button " + buttonID, "Color for button " + buttonID, 0x000000FF);
+                    btn = row.addColorParameter("Button " + buttonID, "Color for button " + buttonID, 0x000000FF);
                   }
                   if (a === 2) {
                     // Status
-                    row.addBoolParameter("Button " + buttonID, "Button " + buttonID + " on/off", false);
+                    btn = row.addBoolParameter("Button " + buttonID, "Button " + buttonID + " on/off", false);
                   }
+
+                  btn.setAttribute("saveValueOnly", false);
                 }
               }
             }
