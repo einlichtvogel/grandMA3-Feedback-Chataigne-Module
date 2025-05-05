@@ -26,6 +26,20 @@ local oldMasterEnabledValue = {
     blind = false
 }
 
+-- Initial setup for executorsToWatchCurrentPage
+for i = 101, 190 do
+    executorsToWatchCurrentPage [#executorsToWatchCurrentPage + 1] = i
+end
+for i = 201, 290 do
+    executorsToWatchCurrentPage [#executorsToWatchCurrentPage + 1] = i
+end
+for i = 301, 390 do
+    executorsToWatchCurrentPage [#executorsToWatchCurrentPage + 1] = i
+end
+for i = 401, 490 do
+    executorsToWatchCurrentPage [#executorsToWatchCurrentPage + 1] = i
+end
+
 local oscEntry = 3
 
 -- the Speed to check executors
@@ -136,7 +150,6 @@ local function main()
         }
 
         local inputs = {
-            {name = "Current Page", value = GetVar(GlobalVars(), "gmaf_executorsToWatchCurrentPage")},
             {name = "Any Page", value = GetVar(GlobalVars(), "gmaf_executorsToWatchAnyPage")},
         }
 
@@ -144,7 +157,7 @@ local function main()
             MessageBox(
             {
                 title = "Settings for grandMA3 OSC Feedback",
-                message = "Hier kannst du die Executor in folgendem Format eintragen:\n'101-115;201-215;301-315'.\n Bei 'Any Page' werden die Executor aller Pages geupdated, und deren Page dazugeschrieben.\nBei 'Current Page' werden nur die Executor der aktuell ausgewählten Page updated.",
+                message = "Hier kannst du die Executor in folgendem Format eintragen:\n'101-115;201-215;301-315'.\n Bei 'Any Page' werden die Executor aller Pages geupdated, und deren Page dazugeschrieben.",
                 inputs = inputs,
                 states = states,
                 commands = {{value = 1, name = "Ok"}, {value = 0, name = "Cancel"}},
@@ -162,10 +175,6 @@ local function main()
             end
 
             for k,v in pairs(resultTable.inputs) do
-                if k == "Current Page" then
-                    SetVar(GlobalVars(), "gmaf_executorsToWatchCurrentPage", v)
-                end
-
                 if k == "Any Page" then
                     SetVar(GlobalVars(), "gmaf_executorsToWatchAnyPage", v)
                 end
@@ -183,10 +192,6 @@ local function main()
 
     -- Start / Stop
     if(tonumber(a) == 1) then
-        -- push all values saved in the settings from the executors into the global variables
-        local execsCurrent = GetVar(GlobalVars(), "gmaf_executorsToWatchCurrentPage")
-        processExecutorStrings(execsCurrent, true)
-
         -- push all values saved in the settings from the executors into the global variables
         local execsAny = GetVar(GlobalVars(), "gmaf_executorsToWatchAnyPage")
         processExecutorStrings(execsAny, false)
@@ -216,7 +221,6 @@ local function main()
                     resultString = resultString .. ";"  -- Fügen Sie ein Komma hinzu, wenn es nicht das letzte Element ist
                 end
             end
-            Cmd(string.format('SendOSC %d "/Setup/executorsToWatchCurrentPage,s,%s"', oscEntry, execsCurrent))
             Cmd(string.format('SendOSC %d "/Setup/executorsToWatchAnyPage,s,%s"', oscEntry, execsAny))
             Cmd(string.format('SendOSC %d "/Setup/pages,s,%s"', oscEntry, resultString))
             Cmd(string.format('SendOSC %d "/Setup/setupAllValues,i,1"', oscEntry))
