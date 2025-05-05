@@ -48,6 +48,13 @@ local resendTick = 0
 
 -- Utils --
 
+local function wait(seconds)
+    local start = os.clock()
+    while os.clock() - start < seconds do
+        coroutine.yield()  -- Unterbreche die Coroutine
+    end
+end
+
 local function getApereanceColor(sequence)
     local apper = sequence["APPEARANCE"]
     if apper ~= nil then
@@ -195,6 +202,8 @@ local function main()
         -- push all values saved in the settings from the executors into the global variables
         local execsAny = GetVar(GlobalVars(), "gmaf_executorsToWatchAnyPage")
         processExecutorStrings(execsAny, false)
+
+        wait(1)
 
         -- trigger value to start the Feedback
         if GetVar(GlobalVars(), "gmaf_updateOSC") ~= nil then
