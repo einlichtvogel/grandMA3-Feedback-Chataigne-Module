@@ -27,7 +27,6 @@ function getWingNumberFromButtonNumber(execNumber) {
 function init() {
   script.log("--- grandMA3 Feedback OSC module init ---");
 
-  local.parameters.addStringParameter("executorsToWatchCurrentPage", "executorsToWatchCurrentPage", "");
   local.parameters.addStringParameter("executorsToWatchAnyPage", "executorsToWatchAnyPage", "");
   local.parameters.addStringParameter("pages", "pages", "");
   local.parameters.addBoolParameter("loadAllExecutorsForPages", "loadAllExecutorsForPages", false);
@@ -103,11 +102,6 @@ function oscEvent(address, args) {
   //Setup values
   if (address.startsWith("/Setup")){
     var todo = address.split("/")[2];
-
-    //save the values from grandMA plugin to the local parameters
-    if(todo === "executorsToWatchCurrentPage") {
-      local.parameters.executorsToWatchCurrentPage.set(args[0]);
-    }
 
     //save the values from grandMA plugin to the local parameters
     if(todo === "executorsToWatchAnyPage") {
@@ -266,7 +260,7 @@ function oscEvent(address, args) {
       }
   }
 
-  //Page Specific Executors (executorsToWatchCurrentPage)
+  //Page Specific Executors (executorsToWatchAnyPage)
   if (address.startsWith("/Page")){
     var pageNumber = address.split("/")[1].split("e")[1];
 
@@ -298,7 +292,7 @@ function oscEvent(address, args) {
     }
   }
 
-  //Page Non-Specific Executors (executorsToWatchAnyPage - selected page in MA)
+  //Page Non-Specific Executors (executorsToWatchCurrentPage - selected page in MA)
   if (address.startsWith("/Exec")) {
 
     var execNumber = address.split("/")[1].split("c")[1];
