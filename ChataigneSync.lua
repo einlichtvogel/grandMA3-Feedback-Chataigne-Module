@@ -409,8 +409,6 @@ local function main()
 
             if sendColors and (oldColorValues[0][executor] ~= colorValue or forceReload) then
                 oldColorValues[0][executor] = colorValue
-
-                Printf("UPDATEEEEE")
                 Cmd(string.format('SendOSC %d "/Exec%d/Color,s,%s"',
                     oscEntry, executor, colorValue:gsub(",", ";")))
             end
