@@ -54,3 +54,6 @@ Feedback is sent for all executors (Wing 1 - 6 + XKeys) on the current page, as 
   - Verify that the port is set to 8093 in both Chataigne and grandMA3.
   - Confirm that your grandMA3 network settings are correct. The plugin will only function if the grandMA3 is connected to the same network as Chataigne.
 - If any port issues occur, try starting Chataigne FIRST and then grandMA3. This is a known issue with grandMA3, and it may not work if the plugin is started before Chataigne. Maybe also try restarting the whole PC, and starting the software in the order of Chataigne -> grandMA3 -> grandMA3 plugin. The error is reported to MA.
+
+## Shoutout's
+- [xxpasixx](https://github.com/xxpasixx/pam-osc) for creating the original pam-osc plugin for grandMA3 which I rewrote for the usage of this project
