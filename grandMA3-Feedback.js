@@ -105,7 +105,7 @@ function oscEvent(address, args) {
 
     //save the values from grandMA plugin to the local parameters
     if(todo === "executorsToWatchAnyPage") {
-      local.parameters.executorsToWatchAnyPage.set(args[0]);
+      local.parameters.executorsToWatchAnyPage.set(args[0] === "nil" ? "" : args[0]);
     }
 
     //save the values from grandMA plugin to the local parameters
@@ -117,6 +117,10 @@ function oscEvent(address, args) {
     if(todo === "setupAllValues")
       var pages = local.parameters.pages.get().split(";");
       var execsAnyPage = local.parameters.executorsToWatchAnyPage.get().split(";");
+
+      if(local.parameters.executorsToWatchAnyPage.get() === "nil" || local.parameters.executorsToWatchAnyPage.get() === "") {
+        return;
+      }
 
       //delete all pages to recreate them, if they already exist
       if(pages !== undefined){
