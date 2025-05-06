@@ -46,6 +46,24 @@ Feedback is sent for all executors (Wing 1 - 6 + XKeys) on the current page, as 
 - **sendFaders:** If set to true, the plugin will send the fader value of the executor.
 - **sendNames:** If set to true, the plugin will send the name of the sequence associated with the executor.
 
+## Chataigne Module Settings
+<img src="docs/images/chataigne_module_current.png" alt="Chataigne Module Settings" width="600"/>
+<img src="docs/images/chataigne_module_any.png" alt="Chataigne Module Settings" width="600"/>
+
+- Chataigne values are split up the following:
+  - Current Page
+    - Wing 1
+      - Row 100
+      - Row 200
+      - Row 300
+      - Row 400
+    - Wing ...
+  - Page X
+    - Wing X
+      - Row X
+
+How many Pages are displayed depends on the number of pages you have in grandMA3. The module will automatically detect the number of pages and display them accordingly together with the in the grandMA plugin selected executors.
+
 ## Troubleshooting
 
 - If you are not receiving any feedback, check the following:
