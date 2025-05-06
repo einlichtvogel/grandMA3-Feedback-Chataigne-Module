@@ -233,10 +233,16 @@ local function main()
             if value then
                 oscEntry = value.No
             else
-                Printf(" -- ERROR: OSC Data not yet setup, run settings first -- ")
-                Printf(" -- Stopping grandMA3 OSC Feedback -- ")
-                Printf(" ------------------------------------ ")
-                return;
+                Cmd('Store OSC OSCData "grandMA3 OSC Feedback" "PORT" "8093" "SENDCOMMAND" "Yes"');
+                local value = table.nameContainsString(ShowData().OSCBase:Children(), "grandMA3 OSC Feedback")
+                if value then
+                    oscEntry = value.No;
+                else
+                    Printf(" -- ERROR: OSC Data not yet setup, run settings first -- ")
+                    Printf(" -- Stopping grandMA3 OSC Feedback -- ")
+                    Printf(" ------------------------------------ ")
+                    return;
+                end
             end
 
             SetVar(GlobalVars(), "gmaf_updateOSC", true)
