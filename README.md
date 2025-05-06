@@ -2,6 +2,9 @@
 
 This Chataigne module allows you to receive feedback from grandMA3 via OSC and an LUA plugin.
 
+**WARNING**: This module is in development and may not work as expected. Use at your own risk. Not show ready!
+Feel free to give feedback or report issues.
+
 ## Features
 
 The module provides the following feedback from grandMA3:
