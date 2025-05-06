@@ -223,19 +223,15 @@ local function main()
         if GetVar(GlobalVars(), "gmaf_updateOSC") ~= nil then
             SetVar(GlobalVars(), "gmaf_updateOSC", not GetVar(GlobalVars(), "gmaf_updateOSC"))
         else
+            Printf(" ------------------------------------ ")
+            Printf(" -- Starting grandMA3 OSC Feedback -- ")
             wait(0.5)
             SetVar(GlobalVars(), "gmaf_updateOSC", true)
         end
 
         -- welcome / bye messages
         if(GetVar(GlobalVars(), "gmaf_updateOSC") == true) then
-            Printf(" ------------------------------------ ")
-            Printf(" -- Starting grandMA3 OSC Feedback -- ")
-            Printf(" Value Checks: ")
-            Printf("  automaticResendButtons: " .. (automaticResendButtons and "true" or "false"))
-            Printf("  sendColors: " .. (sendColors and "true" or "false"))
-            Printf("  sendNames: " .. (sendNames and "true" or "false"))
-            Printf("  sendFaders: " .. (sendFaders and "true" or "false"))
+            Printf(" Running... ")
 
             -- Feedback for the Cahatigne Plugin to set itself up
             local resultString = ""
