@@ -203,12 +203,11 @@ local function main()
         local execsAny = GetVar(GlobalVars(), "gmaf_executorsToWatchAnyPage")
         processExecutorStrings(execsAny, false)
 
-        wait(1)
-
         -- trigger value to start the Feedback
         if GetVar(GlobalVars(), "gmaf_updateOSC") ~= nil then
             SetVar(GlobalVars(), "gmaf_updateOSC", not GetVar(GlobalVars(), "gmaf_updateOSC"))
         else
+            wait(0.5)
             SetVar(GlobalVars(), "gmaf_updateOSC", true)
         end
 
