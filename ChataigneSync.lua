@@ -40,7 +40,7 @@ for i = 401, 490 do
     executorsToWatchCurrentPage [#executorsToWatchCurrentPage + 1] = i
 end
 
-local oscEntry = 3
+local oscEntry = -1
 
 -- the Speed to check executors
 local tick = 1 / 10 -- 1/10
@@ -226,6 +226,19 @@ local function main()
             Printf(" ------------------------------------ ")
             Printf(" -- Starting grandMA3 OSC Feedback -- ")
             wait(0.5)
+
+            -- Setup OSC
+            local value = table.nameContainsString(ShowData().OSCBase:Children(), "grandMA3 OSC Feedback")
+
+            if value then
+                oscEntry = value.No
+            else
+                Printf(" -- ERROR: OSC Data not yet setup, run settings first -- ")
+                Printf(" -- Stopping grandMA3 OSC Feedback -- ")
+                Printf(" ------------------------------------ ")
+                return;
+            end
+
             SetVar(GlobalVars(), "gmaf_updateOSC", true)
         end
 
