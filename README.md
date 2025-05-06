@@ -50,3 +50,4 @@ Feedback is sent for all executors (Wing 1 - 6 + XKeys) on the current page, as 
     - In the [OSC Menu](https://help.malighting.com/grandMA3/2.2/HTML/remote_inputs_osc.html), select the correct interface and allow the destination IP to autofill (click it, remove the value, and save).
   - Verify that the port is set to 8093 in both Chataigne and grandMA3.
   - Confirm that your grandMA3 network settings are correct. The plugin will only function if the grandMA3 is connected to the same network as Chataigne.
+- If any port issues occur, try starting Chataigne FIRST and then grandMA3. This is a known issue with grandMA3, and it may not work if the plugin is started before Chataigne. Maybe also try restarting the whole PC, and starting the software in the order of Chataigne -> grandMA3 -> grandMA3 plugin. The error is reported to MA.
