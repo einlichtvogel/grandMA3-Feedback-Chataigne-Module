@@ -171,7 +171,7 @@ local function main()
             MessageBox(
             {
                 title = "Settings for grandMA3 OSC Feedback",
-                message = "Hier kannst du die Executor in folgendem Format eintragen:\n'101-115;201-215;301-315'.\n Bei 'Any Page' werden die Executor aller Pages geupdated, und deren Page dazugeschrieben.",
+                message = "You can enter the executors in the following format:\n'101-115;201-215;301-315'.\nIn 'Any Page', the changes from executors of all pages are updated, and their page is added to chataigne.",
                 inputs = inputs,
                 states = states,
                 commands = {{value = 1, name = "Ok"}, {value = 0, name = "Cancel"}},
