@@ -86,6 +86,13 @@ function table.contains(tbl, val)
     return false
 end
 
+function table.nameContainsString(tbl, val)
+    for _, v in ipairs(tbl) do
+        if v.Name == val then return v end
+    end
+    return nil
+end
+
 local function processExecutorStrings(executorsString, anyPage)
     -- Iteriere über jede Zahlenreihe, die durch ";" getrennt ist
 
@@ -186,6 +193,15 @@ local function main()
                     SetVar(GlobalVars(), "gmaf_executorsToWatchAnyPage", v)
                 end
             end
+
+
+            -- Setup OSC
+            local value = table.nameContainsString(ShowData().OSCBase:Children(), "grandMA3 OSC Feedback")
+
+            if value == nil then
+                Cmd('Store OSC OSCData "grandMA3 OSC Feedback" "PORT" "8093" "SENDCOMMAND" "Yes"');
+            end
+
 
             -- only rerun the program if the program is running
             if GetVar(GlobalVars(), "gmaf_updateOSC") ~= nil and GetVar(GlobalVars(), "gmaf_updateOSC") == true then
