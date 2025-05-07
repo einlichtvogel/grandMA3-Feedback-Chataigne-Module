@@ -93,7 +93,7 @@ function table.nameContainsString(tbl, val)
     return nil
 end
 
-local function processExecutorStrings(executorsString, anyPage)
+local function processExecutorStrings(executorsString)
     -- Iteriere über jede Zahlenreihe, die durch ";" getrennt ist
 
     if executorsString then
@@ -111,11 +111,7 @@ local function processExecutorStrings(executorsString, anyPage)
 
                 -- Iteriere über den Bereich von start bis stop
                 for i = start, stop do
-                    if(anyPage) then
-                        executorsToWatchCurrentPage[#executorsToWatchCurrentPage + 1] = i
-                    else
-                        executorsToWatchAnyPage[#executorsToWatchAnyPage + 1] = i
-                    end
+                    executorsToWatchAnyPage[#executorsToWatchAnyPage + 1] = i
                 end
             end
         end
@@ -217,7 +213,9 @@ local function main()
     if(tonumber(a) == 1) then
         -- push all values saved in the settings from the executors into the global variables
         local execsAny = GetVar(GlobalVars(), "gmaf_executorsToWatchAnyPage")
-        processExecutorStrings(execsAny, false)
+        processExecutorStrings(execsAny)
+
+        wait(0.5)
 
         -- trigger value to start the Feedback
         if GetVar(GlobalVars(), "gmaf_updateOSC") ~= nil then
@@ -225,7 +223,6 @@ local function main()
         else
             Printf(" ------------------------------------ ")
             Printf(" -- Starting grandMA3 OSC Feedback -- ")
-            wait(0.5)
 
             -- Setup OSC
             local value = table.nameContainsString(ShowData().OSCBase:Children(), "grandMA3 OSC Feedback")
