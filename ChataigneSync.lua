@@ -48,13 +48,6 @@ local resendTick = 0
 
 -- Utils --
 
-local function wait(seconds)
-    local start = os.clock()
-    while os.clock() - start < seconds do
-        coroutine.yield()  -- Unterbreche die Coroutine
-    end
-end
-
 local function getApereanceColor(sequence)
     local apper = sequence["APPEARANCE"]
     if apper ~= nil then
@@ -215,8 +208,6 @@ local function main()
         local execsAny = GetVar(GlobalVars(), "gmaf_executorsToWatchAnyPage")
         processExecutorStrings(execsAny)
 
-        wait(0.5)
-
         -- trigger value to start the Feedback
         if GetVar(GlobalVars(), "gmaf_updateOSC") ~= nil then
             SetVar(GlobalVars(), "gmaf_updateOSC", not GetVar(GlobalVars(), "gmaf_updateOSC"))
@@ -353,25 +344,25 @@ local function main()
                 oldFaderValues[page.No] = oldFaderValues[page.No] or {}
 
                 -- Check for new changes
-                if oldButtonValues[page.No][executor] ~= buttonValue then
+                if oldButtonValues[page.No][executor] ~= buttonValue or forceReload or forceReloadButtons then
                     oldButtonValues[page.No][executor] = buttonValue
                     Cmd(string.format('SendOSC %d "/Page%d/Exec%d/Button,s,%s"',
                         oscEntry, page.No, executor, buttonValue and "On" or "Off"))
                 end
 
-                if sendFaders and ((oldFaderValues[page.No][executor] ~= faderValue and not (isFlash and buttonValue and faderValue == 100))) then
+                if sendFaders and ((oldFaderValues[page.No][executor] ~= faderValue and not (isFlash and buttonValue and faderValue == 100)) or forceReload) then
                     oldFaderValues[page.No][executor] = faderValue
                     Cmd(string.format('SendOSC %d "/Page%d/Exec%d/Fader,i,%s"',
                         oscEntry, page.No, executor, faderValue * 1.27))
                 end
 
-                if sendColors and (oldColorValues[page.No][executor] ~= colorValue) then
+                if sendColors and (oldColorValues[page.No][executor] ~= colorValue or forceReload) then
                     oldColorValues[page.No][executor] = colorValue
                     Cmd(string.format('SendOSC %d "/Page%d/Exec%d/Color,s,%s"',
                         oscEntry, page.No, executor, colorValue:gsub(",", ";")))
                 end
 
-                if sendNames and (oldNameValues[page.No][executor] ~= nameValue) then
+                if sendNames and (oldNameValues[page.No][executor] ~= nameValue or forceReload) then
                     oldNameValues[page.No][executor] = nameValue
                     Cmd(string.format('SendOSC %d "/Page%d/Exec%d/Name,s,%s"',
                         oscEntry, page.No, executor, nameValue))
