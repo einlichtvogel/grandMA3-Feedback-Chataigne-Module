@@ -185,10 +185,11 @@ local function main()
 
 
             -- Setup OSC
-            local value = table.nameContainsString(ShowData().OSCBase:Children(), "grandMA3 OSC Feedback")
+            local value = table.nameContainsString(ShowData().OSCBase:Children(), "grandMA3 OSC Feedback Output")
 
             if value == nil then
-                Cmd('Store OSC OSCData "grandMA3 OSC Feedback" "PORT" "8093" "SENDCOMMAND" "Yes"');
+                Cmd('Store OSC OSCData "grandMA3 OSC Feedback Output" "PORT" "8093" "SENDCOMMAND" "Yes"');
+                Cmd('Store OSC OSCData "grandMA3 OSC Chataigne Input" "8080" "RECEIVE" "Yes" "RECEIVECOMMAND" "Yes"');
             end
 
 
@@ -216,13 +217,14 @@ local function main()
             Printf(" -- Starting grandMA3 OSC Feedback -- ")
 
             -- Setup OSC
-            local value = table.nameContainsString(ShowData().OSCBase:Children(), "grandMA3 OSC Feedback")
+            local value = table.nameContainsString(ShowData().OSCBase:Children(), "grandMA3 OSC Feedback Output")
 
             if value then
                 oscEntry = value.No
             else
-                Cmd('Store OSC OSCData "grandMA3 OSC Feedback" "PORT" "8093" "SENDCOMMAND" "Yes"');
-                local value = table.nameContainsString(ShowData().OSCBase:Children(), "grandMA3 OSC Feedback")
+                Cmd('Store OSC OSCData "grandMA3 OSC Feedback Output" "PORT" "8093" "SENDCOMMAND" "Yes"');
+                Cmd('Store OSC OSCData "grandMA3 OSC Chataigne Input" "8080" "RECEIVE" "Yes" "RECEIVECOMMAND" "Yes"');
+                local value = table.nameContainsString(ShowData().OSCBase:Children(), "grandMA3 OSC Feedback Output")
                 if value then
                     oscEntry = value.No;
                 else
