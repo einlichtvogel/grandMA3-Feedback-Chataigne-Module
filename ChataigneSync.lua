@@ -11,7 +11,7 @@
 -- GNU General Public License for more details.
 -- You should have received a copy of the GNU General Public License
 -- along with this program.  If not, see <https://www.gnu.org/licenses/>.
--- v3.0.0.1
+-- v3.0.0.2
 
 
 local executorsToWatchCurrentPage = {}
@@ -28,16 +28,16 @@ local oldMasterEnabledValue = {
 }
 
 -- Initial setup for executorsToWatchCurrentPage
-for i = 101, 190 do
+for i = 101, 116 do
     executorsToWatchCurrentPage [#executorsToWatchCurrentPage + 1] = i
 end
-for i = 201, 290 do
+for i = 201, 216 do
     executorsToWatchCurrentPage [#executorsToWatchCurrentPage + 1] = i
 end
-for i = 301, 390 do
+for i = 301, 316 do
     executorsToWatchCurrentPage [#executorsToWatchCurrentPage + 1] = i
 end
-for i = 401, 490 do
+for i = 401, 416 do
     executorsToWatchCurrentPage [#executorsToWatchCurrentPage + 1] = i
 end
 
