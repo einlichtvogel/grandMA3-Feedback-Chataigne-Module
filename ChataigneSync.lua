@@ -11,7 +11,7 @@
 -- GNU General Public License for more details.
 -- You should have received a copy of the GNU General Public License
 -- along with this program.  If not, see <https://www.gnu.org/licenses/>.
--- v3.0.0.2
+-- v3.0.0.3
 
 
 local executorsToWatchCurrentPage = {}
@@ -190,7 +190,7 @@ local function main()
 
             if value == nil then
                 Cmd('Store OSC OSCData "grandMA3 OSC Feedback Output" "PORT" "8093" "SENDCOMMAND" "Yes"');
-                Cmd('Store OSC OSCData "grandMA3 OSC Chataigne Input" "8080" "RECEIVE" "Yes" "RECEIVECOMMAND" "Yes"');
+                Cmd('Store OSC OSCData "grandMA3 OSC Chataigne Input" "PORT" "8080" "RECEIVE" "Yes" "RECEIVECOMMAND" "Yes"');
             end
 
 
@@ -224,7 +224,7 @@ local function main()
                 oscEntry = value.No
             else
                 Cmd('Store OSC OSCData "grandMA3 OSC Feedback Output" "PORT" "8093" "SENDCOMMAND" "Yes"');
-                Cmd('Store OSC OSCData "grandMA3 OSC Chataigne Input" "8080" "RECEIVE" "Yes" "RECEIVECOMMAND" "Yes"');
+                Cmd('Store OSC OSCData "grandMA3 OSC Chataigne Input" "PORT" "8080" "RECEIVE" "Yes" "RECEIVECOMMAND" "Yes"');
                 local value = table.nameContainsString(ShowData().OSCBase:Children(), "grandMA3 OSC Feedback Output")
                 if value then
                     oscEntry = value.No;
