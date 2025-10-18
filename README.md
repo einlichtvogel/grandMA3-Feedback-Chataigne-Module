@@ -19,7 +19,7 @@ Feedback is sent for all executors (Wing 1 - 6 + XKeys) on the current page, as 
 ## Setup Instructions
 
 1. **Download the Plugin for grandMA 3:**
-  - Download the latest version of the grandMA3 OSC Feedback plugin (named `grandMA3 OSC Feedback - X.X.X.X.xml`) from the [releases page](https://github.com/einlichtvogel/grandMA3-Feedback-Chataigne-Module/releases/latest).
+  - Download the latest version of the grandMA3 OSC Feedback plugin folder (named `grandMA3_OSC_Feedback_3.0.0.3`) from this repo.
   - Move the downloaded file to the following directory: `MALightingTechnology/gma3_library/datapools/plugins`.
 
 2. **Import the Plugin in grandMA3:**
