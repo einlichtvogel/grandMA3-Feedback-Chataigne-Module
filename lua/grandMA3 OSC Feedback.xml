@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<GMA3 DataVersion="2.2.5.2">
+    <UserPlugin Name="grandMA3 OSC Feedback" Guid="92 40 11 8F E5 96 51 03 6C A4 C2 3B 32 EC 19 7F" Author="PAM-Lights / Luca Heß" Version="3.0.0.3" Path="grandMA3_OSC_Feedback_3.0.0.3">
+        <ComponentLua Name="Script" Guid="92 40 11 8F 16 93 D9 53 21 2B AB 40 31 EC 19 7F" FileName="Script.lua" />
+    </UserPlugin>
+</GMA3>

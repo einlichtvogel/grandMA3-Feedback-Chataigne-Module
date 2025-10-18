@@ -1,6 +1,7 @@
 -- pam-OSC. It allows to control GrandMA3 with Midi Devices over Open Stage Control and allows for Feedback from MA.
 -- Copyright (C) 2024  xxpasixx
 -- Modifications Copyright (C) 2025 Luca Heß (einlichtvogel)
+-- Changes were made fundamentally to the original script so a detailed description is not possible, please compare to the original script for details.
 -- This program is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
 -- the Free Software Foundation, either version 3 of the License, or
