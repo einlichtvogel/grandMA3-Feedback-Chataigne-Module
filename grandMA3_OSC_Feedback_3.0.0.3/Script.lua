@@ -15,6 +15,14 @@
 -- v3.0.0.3
 
 
+-- Configuration Constants
+local OSC_FEEDBACK_OUTPUT_PORT = 8093
+local OSC_CHATAIGNE_INPUT_PORT = 8080
+local POLL_RATE = 1 / 10
+local RESEND_INTERVAL = 15
+local FADER_MIDI_SCALE = 1.27
+
+-- State Variables
 local executorsToWatchCurrentPage = {}
 local executorsToWatchAnyPage = {}
 local oldButtonValues = {}
@@ -44,13 +52,12 @@ end
 
 local oscEntry = -1
 
--- the Speed to check executors
-local tick = 1 / 10 -- 1/10
+-- Polling timing
 local resendTick = 0
 
--- Utils --
+-- Utility Functions --
 
-local function getApereanceColor(sequence)
+local function getAppearanceColor(sequence)
     local apper = sequence["APPEARANCE"]
     if apper ~= nil then
         return apper['BACKR'] .. "," .. apper['BACKG'] .. "," .. apper['BACKB'] .. "," .. apper['BACKALPHA']
@@ -89,29 +96,23 @@ function table.nameContainsString(tbl, val)
 end
 
 local function processExecutorStrings(executorsString)
-    -- Iteriere über jede Zahlenreihe, die durch ";" getrennt ist
-
+    -- Iterate through each range of numbers separated by ";"
     if executorsString then
-        if anyPage then
-            executorsToWatchCurrentPage = {}
-        else
-            executorsToWatchAnyPage = {}
-        end
+        executorsToWatchAnyPage = {}
         for executorRange in string.gmatch(executorsString, "([^;]+)") do
-            -- Splitte die Zahlenreihe bei "-"
+            -- Split the range at "-"
             local start, stop = executorRange:match("(%d+)-(%d+)")
             if start and stop then
-                start = tonumber(start)  -- Konvertiere in eine Zahl
-                stop = tonumber(stop)    -- Konvertiere in eine Zahl
+                start = tonumber(start)
+                stop = tonumber(stop)
 
-                -- Iteriere über den Bereich von start bis stop
+                -- Iterate through the range from start to stop
                 for i = start, stop do
                     executorsToWatchAnyPage[#executorsToWatchAnyPage + 1] = i
                 end
             end
         end
     end
-
 end
 
 local function findExecutor(pageNum, executorNum)
@@ -125,7 +126,33 @@ local function findExecutor(pageNum, executorNum)
     return nil
 end
 
--- Utils end --
+local function setupOSCENTries()
+    local value = table.nameContainsString(ShowData().OSCBase:Children(), "grandMA3 OSC Feedback Output")
+
+    if value == nil then
+        Cmd('Store OSC OSCData "grandMA3 OSC Feedback Output" "PORT" "' .. OSC_FEEDBACK_OUTPUT_PORT .. '" "SENDCOMMAND" "Yes"')
+        Cmd('Store OSC OSCData "grandMA3 OSC Chataigne Input" "PORT" "' .. OSC_CHATAIGNE_INPUT_PORT .. '" "RECEIVE" "Yes" "RECEIVECOMMAND" "Yes"')
+        value = table.nameContainsString(ShowData().OSCBase:Children(), "grandMA3 OSC Feedback Output")
+    end
+
+    if value then
+        oscEntry = value.No
+        return true
+    else
+        return false
+    end
+end
+
+local function sendOSCCommand(command)
+    if oscEntry == -1 then
+        Printf("ERROR: OSC entry not initialized")
+        return false
+    end
+    Cmd(command)
+    return true
+end
+
+-- End Utility Functions --
 
 local function main()
     local automaticResendButtons = GetVar(GlobalVars(), "gmaf_automaticResendButtons") or false
@@ -143,7 +170,7 @@ local function main()
         caller = GetFocusDisplay(),
         items = { GetVar(GlobalVars(), "gmaf_updateOSC") and "Stop" or "Start", "Settings"},
     }
-    local a,b = PopupInput(descTable)
+    local a = PopupInput(descTable)
 
     -- Settings
     if (tonumber(a) == 2) then
@@ -185,15 +212,8 @@ local function main()
                 end
             end
 
-
             -- Setup OSC
-            local value = table.nameContainsString(ShowData().OSCBase:Children(), "grandMA3 OSC Feedback Output")
-
-            if value == nil then
-                Cmd('Store OSC OSCData "grandMA3 OSC Feedback Output" "PORT" "8093" "SENDCOMMAND" "Yes"');
-                Cmd('Store OSC OSCData "grandMA3 OSC Chataigne Input" "PORT" "8080" "RECEIVE" "Yes" "RECEIVECOMMAND" "Yes"');
-            end
-
+            setupOSCENTries()
 
             -- only rerun the program if the program is running
             if GetVar(GlobalVars(), "gmaf_updateOSC") ~= nil and GetVar(GlobalVars(), "gmaf_updateOSC") == true then
@@ -219,22 +239,11 @@ local function main()
             Printf(" -- Starting grandMA3 OSC Feedback -- ")
 
             -- Setup OSC
-            local value = table.nameContainsString(ShowData().OSCBase:Children(), "grandMA3 OSC Feedback Output")
-
-            if value then
-                oscEntry = value.No
-            else
-                Cmd('Store OSC OSCData "grandMA3 OSC Feedback Output" "PORT" "8093" "SENDCOMMAND" "Yes"');
-                Cmd('Store OSC OSCData "grandMA3 OSC Chataigne Input" "PORT" "8080" "RECEIVE" "Yes" "RECEIVECOMMAND" "Yes"');
-                local value = table.nameContainsString(ShowData().OSCBase:Children(), "grandMA3 OSC Feedback Output")
-                if value then
-                    oscEntry = value.No;
-                else
-                    Printf(" -- ERROR: OSC Data not yet setup, run settings first -- ")
-                    Printf(" -- Stopping grandMA3 OSC Feedback -- ")
-                    Printf(" ------------------------------------ ")
-                    return;
-                end
+            if not setupOSCENTries() then
+                Printf(" -- ERROR: OSC Data not yet setup, run settings first -- ")
+                Printf(" -- Stopping grandMA3 OSC Feedback -- ")
+                Printf(" ------------------------------------ ")
+                return
             end
 
             SetVar(GlobalVars(), "gmaf_updateOSC", true)
@@ -244,17 +253,16 @@ local function main()
         if(GetVar(GlobalVars(), "gmaf_updateOSC") == true) then
             Printf(" Running... ")
 
-            -- Feedback for the Cahatigne Plugin to set itself up
-            local resultString = ""
+            -- Feedback for the Chataigne Plugin to set itself up
+            local pages = {}
             for i, child in ipairs(DataPool().Pages:Children()) do
-                resultString = resultString .. child  -- Fügen Sie den Kindnamen zum String hinzu
-                if i < #DataPool().Pages:Children() then
-                    resultString = resultString .. ";"  -- Fügen Sie ein Komma hinzu, wenn es nicht das letzte Element ist
-                end
+                pages[#pages + 1] = tostring(child)
             end
-            Cmd(string.format('SendOSC %d "/Setup/executorsToWatchAnyPage,s,%s"', oscEntry, execsAny))
-            Cmd(string.format('SendOSC %d "/Setup/pages,s,%s"', oscEntry, resultString))
-            Cmd(string.format('SendOSC %d "/Setup/setupAllValues,i,1"', oscEntry))
+            local resultString = table.concat(pages, ";")
+
+            sendOSCCommand(string.format('SendOSC %d "/Setup/executorsToWatchAnyPage,s,%s"', oscEntry, execsAny))
+            sendOSCCommand(string.format('SendOSC %d "/Setup/pages,s,%s"', oscEntry, resultString))
+            sendOSCCommand(string.format('SendOSC %d "/Setup/setupAllValues,i,1"', oscEntry))
         else
             -- Cleanup
             SetVar(GlobalVars(), "gmaf_updateOSC", nil)
@@ -276,16 +284,16 @@ local function main()
         if automaticResendButtons then
             resendTick = resendTick + 1
         end
-        if resendTick >= 15 then
+        if resendTick >= RESEND_INTERVAL then
             forceReloadButtons = true
             resendTick = 0
         end
 
         -- Check Master Enabled Values
         for masterKey, masterValue in pairs(oldMasterEnabledValue) do
-            local currValue = getMasterEnabled(masterKey)
+            local currValue = getMasterEnabled(masterName)
             if currValue ~= masterValue then
-                Cmd('SendOSC ' .. oscEntry .. ' "/masterEnabled/' .. masterKey .. ',i,' .. (currValue and 1 or 0))
+                sendOSCCommand(string.format('SendOSC %d "/masterEnabled/%s,i,%d"', oscEntry, masterKey, currValue and 1 or 0))
                 oldMasterEnabledValue[masterKey] = currValue
             end
         end
@@ -295,14 +303,22 @@ local function main()
         -- Reset values if page changed
         if myPage.index ~= destPage then
             destPage = myPage.index
-            for maKey, maValue in pairs(oldFaderValues) do
-                oldFaderValues[0][maKey] = 000
+            -- Initialize oldFaderValues[0] if it doesn't exist
+            if oldFaderValues[0] == nil then
+                oldFaderValues[0] = {}
             end
-            for maKey, maValue in pairs(oldButtonValues) do
+            for maKey, _ in pairs(oldFaderValues[0]) do
+                oldFaderValues[0][maKey] = 0
+            end
+            -- Initialize oldButtonValues[0] if it doesn't exist
+            if oldButtonValues[0] == nil then
+                oldButtonValues[0] = {}
+            end
+            for maKey, _ in pairs(oldButtonValues[0]) do
                 oldButtonValues[0][maKey] = false
             end
             forceReload = true
-            Cmd('SendOSC ' .. oscEntry .. ' "/updatePage/current,i,' .. destPage)
+            sendOSCCommand(string.format('SendOSC %d "/updatePage/current,i,%d"', oscEntry, destPage))
         end
 
         -- 1. Executor over all pages (Any Page - Page gets sent with the feedback)
@@ -325,8 +341,8 @@ local function main()
                     local myobject = maValue.Object
 
                     if myobject ~= nil then
-                        buttonValue = myobject:HasActivePlayback() and true or false
-                        if sendColors then colorValue = getApereanceColor(myobject) end
+                        buttonValue = myobject:HasActivePlayback()
+                        if sendColors then colorValue = getAppearanceColor(myobject) end
                         if sendNames then nameValue = getName(myobject) end
                         if sendFaders then
                             faderValue = maValue:GetFader(faderOptions)
@@ -350,25 +366,25 @@ local function main()
                 -- Check for new changes
                 if oldButtonValues[page.No][executor] ~= buttonValue or forceReload or forceReloadButtons then
                     oldButtonValues[page.No][executor] = buttonValue
-                    Cmd(string.format('SendOSC %d "/Page%d/Exec%d/Button,s,%s"',
+                    sendOSCCommand(string.format('SendOSC %d "/Page%d/Exec%d/Button,s,%s"',
                         oscEntry, page.No, executor, buttonValue and "On" or "Off"))
                 end
 
                 if sendFaders and ((oldFaderValues[page.No][executor] ~= faderValue and not (isFlash and buttonValue and faderValue == 100)) or forceReload) then
                     oldFaderValues[page.No][executor] = faderValue
-                    Cmd(string.format('SendOSC %d "/Page%d/Exec%d/Fader,i,%s"',
-                        oscEntry, page.No, executor, faderValue * 1.27))
+                    sendOSCCommand(string.format('SendOSC %d "/Page%d/Exec%d/Fader,i,%d"',
+                        oscEntry, page.No, executor, faderValue * FADER_MIDI_SCALE))
                 end
 
                 if sendColors and (oldColorValues[page.No][executor] ~= colorValue or forceReload) then
                     oldColorValues[page.No][executor] = colorValue
-                    Cmd(string.format('SendOSC %d "/Page%d/Exec%d/Color,s,%s"',
+                    sendOSCCommand(string.format('SendOSC %d "/Page%d/Exec%d/Color,s,%s"',
                         oscEntry, page.No, executor, colorValue:gsub(",", ";")))
                 end
 
                 if sendNames and (oldNameValues[page.No][executor] ~= nameValue or forceReload) then
                     oldNameValues[page.No][executor] = nameValue
-                    Cmd(string.format('SendOSC %d "/Page%d/Exec%d/Name,s,%s"',
+                    sendOSCCommand(string.format('SendOSC %d "/Page%d/Exec%d/Name,s,%s"',
                         oscEntry, page.No, executor, nameValue))
                 end
             end
@@ -395,8 +411,8 @@ local function main()
                 local myobject = maValue.Object
 
                 if myobject ~= nil then
-                    buttonValue = myobject:HasActivePlayback() and true or false
-                    if sendColors then colorValue = getApereanceColor(myobject) end
+                    buttonValue = myobject:HasActivePlayback()
+                    if sendColors then colorValue = getAppearanceColor(myobject) end
                     if sendNames then nameValue = getName(myobject) end
                     if sendFaders then
                         faderValue = maValue:GetFader(faderOptions)
@@ -420,25 +436,25 @@ local function main()
             -- Check for new changes
             if oldButtonValues[0][executor] ~= buttonValue or forceReload or forceReloadButtons then
                 oldButtonValues[0][executor] = buttonValue
-                Cmd(string.format('SendOSC %d "/Exec%d/Button,s,%s"',
+                sendOSCCommand(string.format('SendOSC %d "/Exec%d/Button,s,%s"',
                     oscEntry, executor, buttonValue and "On" or "Off"))
             end
 
             if sendFaders and ((oldFaderValues[0][executor] ~= faderValue and not (isFlash and buttonValue and faderValue == 100)) or forceReload) then
                 oldFaderValues[0][executor] = faderValue
-                Cmd(string.format('SendOSC %d "/Exec%d/Fader,i,%s"',
-                    oscEntry, executor, faderValue * 1.27))
+                sendOSCCommand(string.format('SendOSC %d "/Exec%d/Fader,i,%d"',
+                    oscEntry, executor, faderValue * FADER_MIDI_SCALE))
             end
 
             if sendColors and (oldColorValues[0][executor] ~= colorValue or forceReload) then
                 oldColorValues[0][executor] = colorValue
-                Cmd(string.format('SendOSC %d "/Exec%d/Color,s,%s"',
+                sendOSCCommand(string.format('SendOSC %d "/Exec%d/Color,s,%s"',
                     oscEntry, executor, colorValue:gsub(",", ";")))
             end
 
             if sendNames and (oldNameValues[0][executor] ~= nameValue or forceReload) then
                 oldNameValues[0][executor] = nameValue
-                Cmd(string.format('SendOSC %d "/Exec%d/Name,s,%s"',
+                sendOSCCommand(string.format('SendOSC %d "/Exec%d/Name,s,%s"',
                     oscEntry, executor, nameValue))
             end
             ::continue::
@@ -448,7 +464,7 @@ local function main()
         forceReloadButtons = false
 
         -- delay
-        coroutine.yield(tick)
+        coroutine.yield(POLL_RATE)
     end
 end
 
