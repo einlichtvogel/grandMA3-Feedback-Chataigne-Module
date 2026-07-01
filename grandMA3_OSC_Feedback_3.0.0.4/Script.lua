@@ -178,8 +178,8 @@ local function setupOSCENTries()
     local value = table.nameContainsString(ShowData().OSCBase:Children(), OSC_FEEDBACK_OUTPUT_NAME)
 
     if value == nil then
-        Cmd('Store OSC OSCData "' .. OSC_FEEDBACK_OUTPUT_NAME .. '" "PORT" "' .. OSC_FEEDBACK_OUTPUT_PORT .. '" "SENDCOMMAND" "Yes"')
-        Cmd('Store OSC OSCData "' .. OSC_CHATAIGNE_INPUT_NAME .. '" "PORT" "' .. OSC_CHATAIGNE_INPUT_PORT .. '" "RECEIVE" "Yes" "RECEIVECOMMAND" "Yes"')
+        Cmd('Store OSC OSCData "' .. OSC_FEEDBACK_OUTPUT_NAME .. '" "PORT" "' .. OSC_FEEDBACK_OUTPUT_PORT .. '" "SENDCOMMAND" "Yes" "DESTINATIONIP" "255.255.255.255"')
+        Cmd('Store OSC OSCData "' .. OSC_CHATAIGNE_INPUT_NAME .. '" "PORT" "' .. OSC_CHATAIGNE_INPUT_PORT .. '" "RECEIVE" "Yes" "RECEIVECOMMAND" "Yes" "DESTINATIONIP" "255.255.255.255"')
         value = table.nameContainsString(ShowData().OSCBase:Children(), OSC_FEEDBACK_OUTPUT_NAME)
     end
 
