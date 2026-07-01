@@ -22,6 +22,18 @@ local POLL_RATE = 1 / 10
 local RESEND_INTERVAL = 15
 local FADER_MIDI_SCALE = 1.27
 
+-- OSC Entry Names
+local OSC_FEEDBACK_OUTPUT_NAME = "grandMA3 OSC Feedback Output"
+local OSC_CHATAIGNE_INPUT_NAME = "grandMA3 OSC Chataigne Input"
+
+-- Configurable Executor Ranges for Current Page (Wings 1-4, rows 100-400, buttons 1-16)
+local EXECUTOR_RANGES_CURRENT_PAGE = {
+    {start = 101, stop = 116}, -- Wing 1
+    {start = 201, stop = 216}, -- Wing 2
+    {start = 301, stop = 316}, -- Wing 3
+    {start = 401, stop = 416}, -- Wing 4
+}
+
 -- State Variables
 local executorsToWatchCurrentPage = {}
 local executorsToWatchAnyPage = {}
@@ -35,20 +47,18 @@ local oldMasterEnabledValue = {
     solo = false,
     blind = false
 }
+local existingPages = {}
 
--- Initial setup for executorsToWatchCurrentPage
-for i = 101, 116 do
-    executorsToWatchCurrentPage [#executorsToWatchCurrentPage + 1] = i
+-- Initialize default executorsToWatchCurrentPage from configurable ranges
+local function initDefaultExecutors()
+    executorsToWatchCurrentPage = {}
+    for _, range in ipairs(EXECUTOR_RANGES_CURRENT_PAGE) do
+        for i = range.start, range.stop do
+            executorsToWatchCurrentPage[#executorsToWatchCurrentPage + 1] = i
+        end
+    end
 end
-for i = 201, 216 do
-    executorsToWatchCurrentPage [#executorsToWatchCurrentPage + 1] = i
-end
-for i = 301, 316 do
-    executorsToWatchCurrentPage [#executorsToWatchCurrentPage + 1] = i
-end
-for i = 401, 416 do
-    executorsToWatchCurrentPage [#executorsToWatchCurrentPage + 1] = i
-end
+initDefaultExecutors()
 
 local oscEntry = -1
 
@@ -106,9 +116,14 @@ local function processExecutorStrings(executorsString)
                 start = tonumber(start)
                 stop = tonumber(stop)
 
-                -- Iterate through the range from start to stop
-                for i = start, stop do
-                    executorsToWatchAnyPage[#executorsToWatchAnyPage + 1] = i
+                -- Validate that start <= stop to prevent infinite loops
+                if start > stop then
+                    Printf("WARNING: Invalid executor range %d-%d, skipping", start, stop)
+                else
+                    -- Iterate through the range from start to stop
+                    for i = start, stop do
+                        executorsToWatchAnyPage[#executorsToWatchAnyPage + 1] = i
+                    end
                 end
             end
         end
@@ -127,12 +142,12 @@ local function findExecutor(pageNum, executorNum)
 end
 
 local function setupOSCENTries()
-    local value = table.nameContainsString(ShowData().OSCBase:Children(), "grandMA3 OSC Feedback Output")
+    local value = table.nameContainsString(ShowData().OSCBase:Children(), OSC_FEEDBACK_OUTPUT_NAME)
 
     if value == nil then
-        Cmd('Store OSC OSCData "grandMA3 OSC Feedback Output" "PORT" "' .. OSC_FEEDBACK_OUTPUT_PORT .. '" "SENDCOMMAND" "Yes"')
-        Cmd('Store OSC OSCData "grandMA3 OSC Chataigne Input" "PORT" "' .. OSC_CHATAIGNE_INPUT_PORT .. '" "RECEIVE" "Yes" "RECEIVECOMMAND" "Yes"')
-        value = table.nameContainsString(ShowData().OSCBase:Children(), "grandMA3 OSC Feedback Output")
+        Cmd('Store OSC OSCData "' .. OSC_FEEDBACK_OUTPUT_NAME .. '" "PORT" "' .. OSC_FEEDBACK_OUTPUT_PORT .. '" "SENDCOMMAND" "Yes"')
+        Cmd('Store OSC OSCData "' .. OSC_CHATAIGNE_INPUT_NAME .. '" "PORT" "' .. OSC_CHATAIGNE_INPUT_PORT .. '" "RECEIVE" "Yes" "RECEIVECOMMAND" "Yes"')
+        value = table.nameContainsString(ShowData().OSCBase:Children(), OSC_FEEDBACK_OUTPUT_NAME)
     end
 
     if value then
@@ -146,10 +161,25 @@ end
 local function sendOSCCommand(command)
     if oscEntry == -1 then
         Printf("ERROR: OSC entry not initialized")
-        return false
+        return
     end
     Cmd(command)
-    return true
+end
+
+-- Helper function to initialize or get cached value table
+local function getOrInitTable(cache, key)
+    if cache[key] == nil then
+        cache[key] = {}
+    end
+    return cache[key]
+end
+
+-- Helper function to cleanup old page values
+local function cleanupOldPageValues(pageNo)
+    oldButtonValues[pageNo] = nil
+    oldColorValues[pageNo] = nil
+    oldNameValues[pageNo] = nil
+    oldFaderValues[pageNo] = nil
 end
 
 -- End Utility Functions --
@@ -291,7 +321,7 @@ local function main()
 
         -- Check Master Enabled Values
         for masterKey, masterValue in pairs(oldMasterEnabledValue) do
-            local currValue = getMasterEnabled(masterName)
+            local currValue = getMasterEnabled(masterKey)
             if currValue ~= masterValue then
                 sendOSCCommand(string.format('SendOSC %d "/masterEnabled/%s,i,%d"', oscEntry, masterKey, currValue and 1 or 0))
                 oldMasterEnabledValue[masterKey] = currValue
@@ -300,40 +330,68 @@ local function main()
 
         -- Get current selected page
         local myPage = CurrentExecPage()
+        
+        -- Detect page changes and cleanup deleted pages
+        local currentPageIndices = {}
+        for _, page in ipairs(DataPool().Pages:Children()) do
+            currentPageIndices[page.No] = true
+        end
+        
+        -- Cleanup old values for deleted pages
+        for pageNo, _ in pairs(existingPages) do
+            if not currentPageIndices[pageNo] then
+                cleanupOldPageValues(pageNo)
+            end
+        end
+        
+        -- Update existing pages tracking
+        existingPages = currentPageIndices
+        
         -- Reset values if page changed
         if myPage.index ~= destPage then
             destPage = myPage.index
-            -- Initialize oldFaderValues[0] if it doesn't exist
-            if oldFaderValues[0] == nil then
-                oldFaderValues[0] = {}
+            
+            -- Reset current page executor values
+            local currentValues = getOrInitTable(oldFaderValues, 0)
+            for maKey, _ in pairs(currentValues) do
+                currentValues[maKey] = 0
             end
-            for maKey, _ in pairs(oldFaderValues[0]) do
-                oldFaderValues[0][maKey] = 0
+            
+            currentValues = getOrInitTable(oldButtonValues, 0)
+            for maKey, _ in pairs(currentValues) do
+                currentValues[maKey] = false
             end
-            -- Initialize oldButtonValues[0] if it doesn't exist
-            if oldButtonValues[0] == nil then
-                oldButtonValues[0] = {}
-            end
-            for maKey, _ in pairs(oldButtonValues[0]) do
-                oldButtonValues[0][maKey] = false
-            end
+            
             forceReload = true
             sendOSCCommand(string.format('SendOSC %d "/updatePage/current,i,%d"', oscEntry, destPage))
         end
 
-        -- 1. Executor over all pages (Any Page - Page gets sent with the feedback)
-        for _, executor in ipairs(executorsToWatchAnyPage) do
-            for _, page in ipairs(DataPool().Pages:Children()) do
+        -- Get all pages once for optimization
+        local allPages = DataPool().Pages:Children()
+        
+        -- Build a lookup table for pages to avoid repeated iteration
+        local pageLookup = {}
+        for _, page in ipairs(allPages) do
+            pageLookup[page.No] = page
+        end
 
+        -- Optimized: Process all pages in single pass
+        -- First, collect all data for all pages
+        local pageDataCache = {}
+        local faderOptions = {}
+        faderOptions.value = faderEnd
+        faderOptions.token = "FaderMaster"
+        faderOptions.faderDisabled = false
+        
+        for _, page in ipairs(allPages) do
+            pageDataCache[page.No] = {}
+            
+            -- Process Any Page executors for this page
+            for _, executor in ipairs(executorsToWatchAnyPage) do
                 local buttonValue = false
                 local colorValue = "0,0,0,0"
                 local nameValue = ";"
                 local faderValue = 0
-
-                local faderOptions = {}
-                faderOptions.value = faderEnd
-                faderOptions.token = "FaderMaster"
-                faderOptions.faderDisabled = false
                 local isFlash = false
 
                 local maValue = findExecutor(page.No, executor)
@@ -349,48 +407,66 @@ local function main()
                             isFlash = maValue.KEY == "Flash"
                         end
                     end
-                else
-                    -- If the executor is not found, set default values
-                    buttonValue = false
-                    colorValue = "0,0,0,0"
-                    nameValue = ";"
-                    faderValue = 0
                 end
 
-                -- Init all values
-                oldButtonValues[page.No] = oldButtonValues[page.No] or {}
-                oldColorValues[page.No] = oldColorValues[page.No] or {}
-                oldNameValues[page.No] = oldNameValues[page.No] or {}
-                oldFaderValues[page.No] = oldFaderValues[page.No] or {}
+                pageDataCache[page.No][executor] = {
+                    button = buttonValue,
+                    color = colorValue,
+                    name = nameValue,
+                    fader = faderValue,
+                    isFlash = isFlash
+                }
+            end
+        end
 
+        -- Now send OSC commands based on cached data
+        for _, page in ipairs(allPages) do
+            local pageNo = page.No
+            local executorData = pageDataCache[pageNo]
+            
+            -- Initialize cache tables once per page
+            local oldButtons = getOrInitTable(oldButtonValues, pageNo)
+            local oldColors = getOrInitTable(oldColorValues, pageNo)
+            local oldNames = getOrInitTable(oldNameValues, pageNo)
+            local oldFaders = getOrInitTable(oldFaderValues, pageNo)
+            
+            for _, executor in ipairs(executorsToWatchAnyPage) do
+                local data = executorData[executor]
+                
                 -- Check for new changes
-                if oldButtonValues[page.No][executor] ~= buttonValue or forceReload or forceReloadButtons then
-                    oldButtonValues[page.No][executor] = buttonValue
+                if oldButtons[executor] ~= data.button or forceReload or forceReloadButtons then
+                    oldButtons[executor] = data.button
                     sendOSCCommand(string.format('SendOSC %d "/Page%d/Exec%d/Button,s,%s"',
-                        oscEntry, page.No, executor, buttonValue and "On" or "Off"))
+                        oscEntry, pageNo, executor, data.button and "On" or "Off"))
                 end
 
-                if sendFaders and ((oldFaderValues[page.No][executor] ~= faderValue and not (isFlash and buttonValue and faderValue == 100)) or forceReload) then
-                    oldFaderValues[page.No][executor] = faderValue
+                if sendFaders and ((oldFaders[executor] ~= data.fader and not (data.isFlash and data.button and data.fader == 100)) or forceReload) then
+                    oldFaders[executor] = data.fader
                     sendOSCCommand(string.format('SendOSC %d "/Page%d/Exec%d/Fader,i,%d"',
-                        oscEntry, page.No, executor, faderValue * FADER_MIDI_SCALE))
+                        oscEntry, pageNo, executor, math.floor(data.fader * FADER_MIDI_SCALE)))
                 end
 
-                if sendColors and (oldColorValues[page.No][executor] ~= colorValue or forceReload) then
-                    oldColorValues[page.No][executor] = colorValue
+                if sendColors and (oldColors[executor] ~= data.color or forceReload) then
+                    oldColors[executor] = data.color
                     sendOSCCommand(string.format('SendOSC %d "/Page%d/Exec%d/Color,s,%s"',
-                        oscEntry, page.No, executor, colorValue:gsub(",", ";")))
+                        oscEntry, pageNo, executor, data.color:gsub(",", ";")))
                 end
 
-                if sendNames and (oldNameValues[page.No][executor] ~= nameValue or forceReload) then
-                    oldNameValues[page.No][executor] = nameValue
+                if sendNames and (oldNames[executor] ~= data.name or forceReload) then
+                    oldNames[executor] = data.name
                     sendOSCCommand(string.format('SendOSC %d "/Page%d/Exec%d/Name,s,%s"',
-                        oscEntry, page.No, executor, nameValue))
+                        oscEntry, pageNo, executor, data.name))
                 end
             end
         end
 
         -- 2. Executors from current page (Current Page - Page is not sent with the feedback)
+        -- Initialize current page cache tables
+        local currentOldButtons = getOrInitTable(oldButtonValues, 0)
+        local currentOldColors = getOrInitTable(oldColorValues, 0)
+        local currentOldNames = getOrInitTable(oldNameValues, 0)
+        local currentOldFaders = getOrInitTable(oldFaderValues, 0)
+        
         for _, executor in ipairs(executorsToWatchCurrentPage) do
             if table.contains(executorsToWatchAnyPage, executor) then goto continue end
 
@@ -398,11 +474,6 @@ local function main()
             local colorValue = "0,0,0,0"
             local nameValue = ";"
             local faderValue = 0
-
-            local faderOptions = {}
-            faderOptions.value = faderEnd
-            faderOptions.token = "FaderMaster"
-            faderOptions.faderDisabled = false
             local isFlash = false
 
             local maValue = findExecutor(destPage, executor)
@@ -419,41 +490,29 @@ local function main()
                         isFlash = maValue.KEY == "Flash"
                     end
                 end
-            else
-                -- If the executor is not found, set default values
-                buttonValue = false
-                colorValue = "0,0,0,0"
-                nameValue = ";"
-                faderValue = 0
             end
 
-            -- Init all values
-            oldButtonValues[0] = oldButtonValues[0] or {}
-            oldColorValues[0] = oldColorValues[0] or {}
-            oldNameValues[0] = oldNameValues[0] or {}
-            oldFaderValues[0] = oldFaderValues[0] or {}
-
             -- Check for new changes
-            if oldButtonValues[0][executor] ~= buttonValue or forceReload or forceReloadButtons then
-                oldButtonValues[0][executor] = buttonValue
+            if currentOldButtons[executor] ~= buttonValue or forceReload or forceReloadButtons then
+                currentOldButtons[executor] = buttonValue
                 sendOSCCommand(string.format('SendOSC %d "/Exec%d/Button,s,%s"',
                     oscEntry, executor, buttonValue and "On" or "Off"))
             end
 
-            if sendFaders and ((oldFaderValues[0][executor] ~= faderValue and not (isFlash and buttonValue and faderValue == 100)) or forceReload) then
-                oldFaderValues[0][executor] = faderValue
+            if sendFaders and ((currentOldFaders[executor] ~= faderValue and not (isFlash and buttonValue and faderValue == 100)) or forceReload) then
+                currentOldFaders[executor] = faderValue
                 sendOSCCommand(string.format('SendOSC %d "/Exec%d/Fader,i,%d"',
-                    oscEntry, executor, faderValue * FADER_MIDI_SCALE))
+                    oscEntry, executor, math.floor(faderValue * FADER_MIDI_SCALE)))
             end
 
-            if sendColors and (oldColorValues[0][executor] ~= colorValue or forceReload) then
-                oldColorValues[0][executor] = colorValue
+            if sendColors and (currentOldColors[executor] ~= colorValue or forceReload) then
+                currentOldColors[executor] = colorValue
                 sendOSCCommand(string.format('SendOSC %d "/Exec%d/Color,s,%s"',
                     oscEntry, executor, colorValue:gsub(",", ";")))
             end
 
-            if sendNames and (oldNameValues[0][executor] ~= nameValue or forceReload) then
-                oldNameValues[0][executor] = nameValue
+            if sendNames and (currentOldNames[executor] ~= nameValue or forceReload) then
+                currentOldNames[executor] = nameValue
                 sendOSCCommand(string.format('SendOSC %d "/Exec%d/Name,s,%s"',
                     oscEntry, executor, nameValue))
             end
