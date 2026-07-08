@@ -2,6 +2,10 @@
 
 This Chataigne module allows you to receive feedback from grandMA3 via OSC and an LUA plugin.
 
+> [!IMPORTANT]  
+> Because I decided to move on, and build the second generation of my onPC system, I will not continue to update this repository and plugin for Chataigne.
+> If there is anyone that is interested to maintain this repository, please contact me. I will be happy to give you the rights to do so.
+
 **WARNING**: This module is in development and may not work as expected. Use at your own risk. Not show ready!
 Feel free to give feedback or report issues.
 
@@ -19,7 +23,7 @@ Feedback is sent for all executors (Wing 1 - 6 + XKeys) on the current page, as 
 ## Setup Instructions
 
 1. **Download the Plugin for grandMA 3:**
-  - Download the latest version of the grandMA3 OSC Feedback plugin folder (named `grandMA3_OSC_Feedback_3.0.0.3`) from this repo.
+  - Download the latest version of the grandMA3 OSC Feedback plugin folder (named `grandMA3_OSC_Feedback_3.0.0.4`) from this repo.
   - Move the downloaded file to the following directory: `MALightingTechnology/gma3_library/datapools/plugins`.
 
 2. **Import the Plugin in grandMA3:**
